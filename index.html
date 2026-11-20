@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laporan Penjualan Harian - POS Formulir Kertas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #e5e7eb;
+      color: #111827;
+    }
+
+    .arabic-text {
+      font-family: 'Amiri', serif;
+      font-size: 1.55rem;
+      line-height: 1.35;
+    }
+
+    /* Gaya Lembar Kertas & Garis Formulir */
+    .paper-sheet {
+      background-color: #ffffff;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .form-table th,
+    .form-table td {
+      border: 1.5px solid #1f2937;
+    }
+
+    .header-grid-table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .header-grid-table td {
+      border: 1.5px solid #1f2937;
+    }
+
+    .cell-header-bg {
+      background-color: #d1d5db;
+    }
+
+    /* Tally Marks (Turus Lidi Kelipatan 5) */
+    .tally-group {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      height: 17px;
+      margin-right: 7px;
+      padding: 0 2px;
+      vertical-align: middle;
+    }
+
+    .tally-stick {
+      width: 2px;
+      height: 15px;
+      background-color: #111827;
+      margin-right: 3px;
+      border-radius: 1px;
+    }
+
+    .tally-stick:last-child {
+      margin-right: 0;
+    }
+
+    .tally-slash {
+      position: absolute;
+      left: -1px;
+      top: 6.5px;
+      width: 21px;
+      height: 2px;
+      background-color: #dc2626;
+      transform: rotate(-28deg);
+      border-radius: 1px;
+    }
+
+    /* Hilangkan spinner pada input number */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    /* Baris Pemisah Kategori seperti pada formulir foto */
+    .separator-row td {
+      height: 9px;
+      background-color: #f3f4f6;
+      padding: 0 !important;
+    }
+
+    /* Label Vertikal TOTAL pada Catatan Penjualan */
+    .vertical-total-label {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      letter-spacing: 0.14em;
+      font-weight: 800;
+      font-size: 11px;
+      line-height: 1;
+      text-transform: uppercase;
+      color: #111827;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 2px;
+    }
+
+    /* Pengaturan Cetak A4 Landscape agar rapi tanpa tombol navigasi */
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 4mm;
+      }
+      body {
+        background-color: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .paper-sheet {
+        box-shadow: none !important;
+        margin: 0 !important;
+        padding: 2.5mm !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        border: none !important;
+      }
+      .cell-header-bg {
+        background-color: #d1d5db !important;
+      }
+      input, textarea {
+        border: none !important;
+        background: transparent !important;
+      }
+      .arabic-text {
+        font-size: 1.2rem !important;
+        line-height: 1.1 !important;
+        margin-bottom: 2px !important;
+      }
+      .print-compact-table th,
+      .print-compact-table td {
+        padding-top: 1.5px !important;
+        padding-bottom: 1.5px !important;
+        font-size: 10px !important;
+        line-height: 1.15 !important;
+      }
+      .separator-row td {
+        height: 5px !important;
+        background-color: #e5e7eb !important;
+      }
+      .expense-row td {
+        padding-top: 0.5px !important;
+        padding-bottom: 0.5px !important;
+        font-size: 9.5px !important;
+        line-height: 1.1 !important;
+      }
+      .expense-row input {
+        font-size: 9.5px !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-10">
+
+  <!-- Toolbar Kontrol Atas (Tidak ikut tercetak) -->
+  <div class="no-print sticky top-0 z-40 bg-slate-900 text-white shadow-md px-3 py-2.5 sm:px-6">
+    <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="bg-amber-500 text-slate-950 font-extrabold px-2.5 py-1 rounded text-xs sm:text-sm tracking-wide">
+          POS LAPORAN
+        </div>
+        <div>
+          <h1 class="text-sm sm:text-base font-bold leading-tight">Catatan Penjualan & Stok Harian</h1>
+          <p class="text-[11px] text-slate-300 hidden sm:block">Tersimpan otomatis • Klik area Catatan Penjualan untuk tambah turus (+1)</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+        <span id="saveStatus" class="text-[11px] text-emerald-400 mr-1 hidden md:inline">✓ Tersimpan otomatis</span>
+
+        <button onclick="copyWhatsAppReport()" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition shadow">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>
+          <span>Salin Laporan WA</span>
+        </button>
+
+        <button id="btnShareExcel" onclick="shareOrDownloadExcel()" class="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-500 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition shadow">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span id="shareExcelLabel">Bagikan Excel</span>
+        </button>
+
+        <button onclick="window.print()" class="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition shadow">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+          <span>Cetak (A4)</span>
+        </button>
+
+        <button onclick="openResetModal()" class="flex items-center gap-1.5 bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition shadow">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span>Reset / Hari Baru</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toastBox" class="no-print fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastContent" class="bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-700 text-sm font-medium flex items-center gap-2">
+      <span id="toastIcon">✅</span>
+      <span id="toastMsg">Pesan notifikasi</span>
+    </div>
+  </div>
+
+  <!-- Kontainer Utama Lembar Formulir Kertas -->
+  <div class="max-w-[1440px] mx-auto mt-3 sm:mt-6 px-2 sm:px-4">
+    <div class="paper-sheet rounded-sm p-3 sm:p-6 md:p-7 border border-gray-300">
+
+      <!-- 1. HEADER & IDENTITAS -->
+      <div class="flex flex-col lg:flex-row justify-between items-stretch lg:items-end gap-3 mb-2.5">
+        <!-- Kiri Atas: Identitas -->
+        <div class="w-full lg:w-[68%]">
+          <table class="header-grid-table print-compact-table text-xs sm:text-sm">
+            <tr>
+              <td class="cell-header-bg font-bold px-2.5 py-1 w-[145px] sm:w-[175px] tracking-tight">HARI/TANGGAL :</td>
+              <td class="px-2 py-0.5 bg-white">
+                <input type="text" id="inputTanggal" class="w-full font-semibold text-gray-900 focus:outline-none focus:bg-amber-50 px-1 rounded" placeholder="Contoh: Jumat, 20 November 2026" oninput="saveState()">
+              </td>
+            </tr>
+            <tr>
+              <td class="cell-header-bg font-bold px-2.5 py-1 tracking-tight">CABANG :</td>
+              <td class="px-2 py-0.5 bg-white">
+                <input type="text" id="inputCabang" class="w-full font-semibold text-gray-900 uppercase focus:outline-none focus:bg-amber-50 px-1 rounded" placeholder="Nama Cabang / Outlet..." oninput="saveState()">
+              </td>
+            </tr>
+            <tr>
+              <td class="cell-header-bg font-bold px-2.5 py-1 tracking-tight">NAMA KARYAWAN :</td>
+              <td class="px-2 py-0.5 bg-white">
+                <input type="text" id="inputKaryawan" class="w-full font-semibold text-gray-900 uppercase focus:outline-none focus:bg-amber-50 px-1 rounded" placeholder="Nama Karyawan Bertugas..." oninput="saveState()">
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Kanan Atas: Bismillah & Modal -->
+        <div class="w-full lg:w-[30%] flex flex-col items-center lg:items-end justify-between">
+          <div class="arabic-text text-gray-800 font-bold text-center w-full mb-1 select-none" dir="rtl">
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+          </div>
+          <table class="header-grid-table print-compact-table text-xs sm:text-sm w-full sm:w-[270px]">
+            <tr>
+              <td class="cell-header-bg font-bold px-2.5 py-1 w-[100px]">Modal :</td>
+              <td class="px-2 py-0.5 bg-white">
+                <div class="flex items-center">
+                  <span class="text-xs text-gray-500 mr-1 select-none">Rp</span>
+                  <input type="text" inputmode="numeric" id="inputModal" class="w-full text-right font-bold text-gray-900 focus:outline-none focus:bg-amber-50 px-1 rounded" placeholder="0" oninput="onModalInput(this)">
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2 & 3. TABEL UTAMA PENJUALAN + PANEL CATATAN QRIS KANAN -->
+      <div class="flex flex-col xl:flex-row gap-3 items-start">
+
+        <!-- Tabel Penjualan Utama -->
+        <div class="w-full xl:w-[84%] overflow-x-auto">
+          <table class="form-table print-compact-table text-xs sm:text-[13px] min-w-[680px]">
+            <thead>
+              <tr class="cell-header-bg text-gray-900 font-extrabold text-center uppercase tracking-wide">
+                <th class="py-1.5 px-2 w-[170px] sm:w-[190px]">NAMA PRODUK</th>
+                <th class="py-1.5 px-2">CATATAN PENJUALAN <span class="font-normal text-[10px] lowercase no-print text-gray-600">(klik kotak untuk +1 turus)</span></th>
+                <th class="py-1.5 px-2 w-[68px] sm:w-[75px]">TOTAL</th>
+                <th class="py-1.5 px-2 w-[85px] sm:w-[98px]">HARGA</th>
+                <th class="py-1.5 px-2 w-[105px] sm:w-[125px]">JUMLAH</th>
+              </tr>
+            </thead>
+            <tbody id="productTableBody">
+              <!-- Baris produk dirender otomatis oleh JavaScript -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="1" class="border-none !border-0"></td>
+                <td class="cell-header-bg font-extrabold text-center py-1 px-2 text-sm tracking-wider">
+                  <div class="flex items-center justify-center gap-2">
+                    <span class="vertical-total-label" title="Total Catatan Penjualan">TOTAL</span>
+                    <span class="font-extrabold text-sm tracking-wider">TOTAL</span>
+                  </div>
+                </td>
+                <td id="grandTotalCup" class="font-extrabold text-center py-1.5 px-2 text-sm bg-white">0</td>
+                <td class="bg-gray-950"></td>
+                <td id="grandTotalOmzet" class="font-extrabold text-right py-1.5 px-2 text-sm bg-white">0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Panel Kanan: Catatan QRIS -->
+        <div class="w-full xl:w-[16%] border-[1.5px] border-gray-800 xl:pt-12 xl:border-none">
+          <div class="bg-gray-50 xl:bg-white border-[1.5px] border-gray-800 p-2.5">
+            <div class="flex items-center justify-between border-b-[1.5px] border-gray-800 pb-1.5 mb-2">
+              <span class="font-extrabold text-xs sm:text-sm tracking-wide">QRIS :</span>
+              <span id="qrisSideTotalBadge" class="text-xs font-extrabold text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-300">Rp 0</span>
+            </div>
+
+            <!-- Baris Input Nominal QRIS Berulang -->
+            <div id="qrisInputsContainer" class="space-y-1.5 max-h-[340px] overflow-y-auto pr-0.5">
+              <!-- Input QRIS dirender oleh JS -->
+            </div>
+
+            <button onclick="addQrisRow()" class="no-print mt-2 w-full bg-gray-800 hover:bg-gray-700 active:scale-95 text-white font-bold text-xs py-1.5 px-2 rounded transition flex items-center justify-center gap-1">
+              <span>+ Tambah Transaksi QRIS</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. BAGIAN BAWAH: REKAP CUP (KIRI) | RINGKASAN KEUANGAN (TENGAH) | PENGELUARAN BAHAN-BAHAN (KANAN) -->
+      <div class="mt-3 grid grid-cols-1 lg:grid-cols-12 gap-0 border-[1.5px] border-gray-800 items-stretch">
+
+        <!-- KIRI: REKAP CUP TERJUAL (5 kolom di desktop) -->
+        <div class="lg:col-span-5 flex flex-col justify-between border-b-[1.5px] lg:border-b-0 lg:border-r-[1.5px] border-gray-800">
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse print-compact-table text-xs sm:text-[13px]">
+              <thead>
+                <tr class="cell-header-bg font-extrabold text-center">
+                  <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-2 text-left min-w-[125px]">REKAP CUP TERJUAL</th>
+                  <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-1 w-[54px]">AWAL</th>
+                  <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-1 w-[58px]">TAMBAH</th>
+                  <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-1 w-[54px]">AKHIR</th>
+                  <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-1 w-[54px]">REJECT</th>
+                  <th class="border-b-[1.5px] border-gray-800 py-1.5 px-1 w-[62px]">TERJUAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- CUP REGULER -->
+                <tr>
+                  <td class="cell-header-bg font-bold border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-2">
+                    <div>CUP REGULER</div>
+                    <div id="syncRegBadge" class="no-print text-[10px] font-normal text-gray-600">POS Reg: 0 cup</div>
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupRegAwal" class="w-full text-center font-semibold focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupRegTambah" class="w-full text-center font-semibold focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupRegAkhir" class="w-full text-center font-semibold focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupRegReject" class="w-full text-center font-semibold text-rose-700 focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td id="cupRegTerjual" class="border-b-[1.5px] border-gray-800 text-center font-extrabold text-sm bg-gray-50">0</td>
+                </tr>
+
+                <!-- CUP JUMBO -->
+                <tr>
+                  <td class="cell-header-bg font-bold border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-2">
+                    <div>CUP JUMBO</div>
+                    <div id="syncJumboBadge" class="no-print text-[10px] font-normal text-gray-600">POS Jumbo: 0 cup</div>
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupJumboAwal" class="w-full text-center font-semibold focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupJumboTambah" class="w-full text-center font-semibold focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupJumboAkhir" class="w-full text-center font-semibold focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 p-1">
+                    <input type="number" id="cupJumboReject" class="w-full text-center font-semibold text-rose-700 focus:outline-none focus:bg-amber-50 rounded py-0.5" placeholder="0" oninput="recalculateAll()">
+                  </td>
+                  <td id="cupJumboTerjual" class="border-b-[1.5px] border-gray-800 text-center font-extrabold text-sm bg-gray-50">0</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Area Indikator Kecocokan / Selisih Cup -->
+          <div class="p-2.5 flex-1 flex flex-col justify-between bg-white">
+            <div id="cupAlertContainer" class="no-print space-y-1.5 mb-2"></div>
+            <div class="no-print flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500 pt-1 border-t border-gray-200">
+              <span>Rumus: <b>TERJUAL = (AWAL + TAMBAH) - AKHIR - REJECT</b></span>
+              <button onclick="autoFillCupAkhirFromPos()" class="text-blue-700 hover:underline font-semibold">
+                Hitung Stok Akhir Otomatis dari POS
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TENGAH: RINGKASAN KEUANGAN (2 kolom di desktop) -->
+        <div class="lg:col-span-2 border-b-[1.5px] lg:border-b-0 lg:border-r-[1.5px] border-gray-800 flex flex-col justify-end">
+          <table class="w-full border-collapse print-compact-table text-xs sm:text-[13px] h-full">
+            <tbody>
+              <tr>
+                <td colspan="2" class="cell-header-bg font-extrabold text-center border-t-[1.5px] lg:border-t-0 border-b-[1.5px] border-gray-800 py-1.5">
+                  TOTAL
+                </td>
+              </tr>
+              <tr>
+                <td colspan="2" id="summaryTotalOmzet" class="font-extrabold text-right border-b-[1.5px] border-gray-800 py-1.5 px-2 bg-gray-50">
+                  0
+                </td>
+              </tr>
+              <tr>
+                <td class="cell-header-bg font-bold border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-2 w-[88px]">Cash :</td>
+                <td class="border-b-[1.5px] border-gray-800 p-1 bg-white">
+                  <input type="text" inputmode="numeric" id="summaryCashInput" class="w-full text-right font-bold text-gray-900 focus:outline-none focus:bg-amber-50 rounded px-1" placeholder="0" oninput="onManualCashChange(this)" title="Otomatis Total - QRIS, atau ketik untuk menyesuaikan">
+                </td>
+              </tr>
+              <tr>
+                <td class="cell-header-bg font-bold border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-2">Qris :</td>
+                <td class="border-b-[1.5px] border-gray-800 p-1 bg-white">
+                  <input type="text" inputmode="numeric" id="summaryQrisInput" class="w-full text-right font-bold text-blue-800 focus:outline-none focus:bg-amber-50 rounded px-1" placeholder="0" oninput="onManualQrisSummaryChange(this)">
+                </td>
+              </tr>
+              <tr>
+                <td class="cell-header-bg font-bold border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-2">Pengeluaran :</td>
+                <td id="summaryPengeluaran" class="font-bold text-right text-rose-700 border-b-[1.5px] border-gray-800 py-1.5 px-2 bg-white">0</td>
+              </tr>
+              <tr>
+                <td class="cell-header-bg font-extrabold py-1.5 px-2 border-r-[1.5px] border-gray-800">Profit :</td>
+                <td id="summaryProfit" class="font-extrabold text-right text-emerald-700 py-1.5 px-2 bg-emerald-50/50">0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- KANAN: PENGELUARAN BAHAN-BAHAN 4 KOLOM HORIZONTAL (5 kolom di desktop) -->
+        <div class="lg:col-span-5 flex flex-col justify-between">
+          <div>
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse text-xs">
+                <thead>
+                  <tr class="cell-header-bg font-extrabold text-center text-[10px] sm:text-[11px] uppercase tracking-tight">
+                    <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-1.5 text-left w-[36%]">
+                      <div class="flex items-center justify-between gap-1">
+                        <span>PENGELUARAN BAHAN-BAHAN</span>
+                        <button onclick="addExpenseRow()" class="no-print bg-gray-800 hover:bg-gray-700 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 normal-case" title="Tambah baris bahan baru">+ Tambah Bahan</button>
+                      </div>
+                    </th>
+                    <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-1 w-[16%]">JML BAHAN</th>
+                    <th class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-1 w-[24%]">HARGA BAHAN</th>
+                    <th class="border-b-[1.5px] border-gray-800 py-1.5 px-1 w-[24%]">JUMLAH</th>
+                  </tr>
+                </thead>
+                <tbody id="expensesTableBody">
+                  <!-- 24 item bahan + baris tambahan dirender oleh JavaScript -->
+                </tbody>
+                <tfoot>
+                  <tr class="bg-gray-100 font-bold">
+                    <td colspan="3" class="border-t-[1.5px] border-r-[1.5px] border-gray-800 py-1.5 px-2 text-right text-xs font-extrabold">TOTAL PENGELUARAN</td>
+                    <td id="expensesTableTotal" class="border-t-[1.5px] border-gray-800 py-1.5 px-1.5 text-right text-rose-700 font-extrabold">0</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- Akhir Bagian Bawah -->
+
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Reset / Hari Baru -->
+  <div id="resetModal" class="no-print fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-200">
+      <div class="flex items-center gap-3 text-rose-600 mb-3">
+        <div class="bg-rose-100 p-2.5 rounded-full">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <h3 class="text-lg font-extrabold text-gray-900">Mulai Hari Baru / Reset Data?</h3>
+      </div>
+      <p class="text-sm text-gray-600 mb-5 leading-relaxed">
+        Pilih opsi reset di bawah ini. Disarankan salin laporan WhatsApp atau cetak PDF terlebih dahulu sebelum menghapus catatan hari ini.
+      </p>
+      <div class="space-y-2.5 mb-5">
+        <button onclick="executeReset(true)" class="w-full text-left p-3 rounded-xl border-2 border-blue-200 bg-blue-50/60 hover:bg-blue-100 transition">
+          <div class="font-bold text-sm text-blue-900">🔄 Hari Baru (Pindahkan Stok Akhir → Stok Awal)</div>
+          <div class="text-xs text-blue-700 mt-0.5">Mengosongkan penjualan, QRIS, & pengeluaran, tapi sisa cup AKHIR otomatis menjadi stok AWAL besok.</div>
+        </button>
+        <button onclick="executeReset(false)" class="w-full text-left p-3 rounded-xl border-2 border-rose-200 bg-rose-50/60 hover:bg-rose-100 transition">
+          <div class="font-bold text-sm text-rose-900">🗑️ Reset Kosong Total</div>
+          <div class="text-xs text-rose-700 mt-0.5">Menghapus seluruh angka penjualan, modal, stok cup, QRIS, dan pengeluaran menjadi 0.</div>
+        </button>
+      </div>
+      <div class="flex justify-end">
+        <button onclick="closeResetModal()" class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'pos_laporan_penjualan_harian_v4';
+
+    function getTodayFormatted() {
+      const hari = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const now = new Date();
+      return `${hari[now.getDay()]}, ${now.getDate()} ${bulan[now.getMonth()]} ${now.getFullYear()}`;
+    }
+
+    // Daftar Menu Lengkap sesuai formulir kertas
+    const DEFAULT_PRODUCTS = [
+      { id: 'p1', name: 'KOPI SUSU REG', price: 7000, qty: 0, cupType: 'REG', separatorAfter: false },
+      { id: 'p2', name: 'KOPI SUSU JUMBO', price: 12000, qty: 0, cupType: 'JUMBO', separatorAfter: true },
+
+      { id: 'p3', name: 'AREN REG', price: 8000, qty: 0, cupType: 'REG', separatorAfter: false },
+      { id: 'p4', name: 'AREN JUMBO', price: 14000, qty: 0, cupType: 'JUMBO', separatorAfter: true },
+
+      { id: 'p5', name: 'MATCHA REG', price: 10000, qty: 0, cupType: 'REG', separatorAfter: false },
+      { id: 'p6', name: 'MATCHA JUMBO', price: 15000, qty: 0, cupType: 'JUMBO', separatorAfter: true },
+
+      { id: 'p7', name: 'RASA-RASA REG', price: 8000, qty: 0, cupType: 'REG', separatorAfter: false },
+      { id: 'p8', name: 'RASA-RASA JUMBO', price: 12000, qty: 0, cupType: 'JUMBO', separatorAfter: true },
+
+      { id: 'p9', name: 'SPESIAL MENU REG', price: 12000, qty: 0, cupType: 'REG', separatorAfter: false },
+      { id: 'p10', name: 'SPESIAL MENU JUMBO', price: 20000, qty: 0, cupType: 'JUMBO', separatorAfter: true },
+
+      { id: 'p11', name: 'KOPI HITAM REG', price: 5000, qty: 0, cupType: 'REG', separatorAfter: false },
+      { id: 'p12', name: 'KOPI HITAM JUMBO', price: 7000, qty: 0, cupType: 'JUMBO', separatorAfter: true },
+
+      { id: 'p_cust', name: 'Customer :', price: 0, qty: 0, cupType: 'OTHER', isCustomerRow: true, customerNote: '', separatorAfter: false }
+    ];
+
+    // Daftar lengkap 24 item Pengeluaran Bahan-Bahan
+    const DEFAULT_EXPENSES = [
+      { id: 'e1', name: 'Es batu', qty: '', price: '' },
+      { id: 'e2', name: 'Uht', qty: '', price: '' },
+      { id: 'e3', name: 'Skm', qty: '', price: '' },
+      { id: 'e4', name: 'Krimer', qty: '', price: '' },
+      { id: 'e5', name: 'Kopi rimba', qty: '', price: '' },
+      { id: 'e6', name: 'Cup reg', qty: '', price: '' },
+      { id: 'e7', name: 'Cup jumbo', qty: '', price: '' },
+      { id: 'e8', name: 'Gas', qty: '', price: '' },
+      { id: 'e9', name: 'Galon', qty: '', price: '' },
+      { id: 'e10', name: 'Bubuk kopi hitam', qty: '', price: '' },
+      { id: 'e11', name: 'Bubuk matcha', qty: '', price: '' },
+      { id: 'e12', name: 'Bubuk mangga', qty: '', price: '' },
+      { id: 'e13', name: 'Bubuk coklat a', qty: '', price: '' },
+      { id: 'e14', name: 'Bubuk coklat b', qty: '', price: '' },
+      { id: 'e15', name: 'Bubuk taro', qty: '', price: '' },
+      { id: 'e16', name: 'Bubuk Thai tea', qty: '', price: '' },
+      { id: 'e17', name: 'Gula aren', qty: '', price: '' },
+      { id: 'e18', name: 'Caramel', qty: '', price: '' },
+      { id: 'e19', name: 'Susu kental manis', qty: '', price: '' },
+      { id: 'e20', name: 'Susu uht', qty: '', price: '' },
+      { id: 'e21', name: 'Pistachio cair', qty: '', price: '' },
+      { id: 'e22', name: 'Moccachino cair', qty: '', price: '' },
+      { id: 'e23', name: 'Espresso', qty: '', price: '' },
+      { id: 'e24', name: 'Butterscotch cair', qty: '', price: '' }
+    ];
+
+    let appState = {
+      tanggal: getTodayFormatted(),
+      cabang: '',
+      karyawan: '',
+      modal: 0,
+      products: JSON.parse(JSON.stringify(DEFAULT_PRODUCTS)),
+      qrisEntries: [
+        { id: 'q1', amount: 0 },
+        { id: 'q2', amount: 0 },
+        { id: 'q3', amount: 0 },
+        { id: 'q4', amount: 0 },
+        { id: 'q5', amount: 0 }
+      ],
+      manualQrisOverride: null,
+      manualCashOverride: null,
+      cupReg: { awal: '', tambah: '', akhir: '', reject: '' },
+      cupJumbo: { awal: '', tambah: '', akhir: '', reject: '' },
+      expenses: JSON.parse(JSON.stringify(DEFAULT_EXPENSES))
+    };
+
+    // ==========================================
+    // UTILITAS FORMAT ANGKA & NOTIFIKASI
+    // ==========================================
+    function formatRupiahNumber(num) {
+      const n = Number(num) || 0;
+      return n.toLocaleString('id-ID');
+    }
+
+    function parseFormattedNumber(str) {
+      if (str === '' || str === null || str === undefined) return 0;
+      const digits = String(str).replace(/\D/g, '');
+      return digits === '' ? 0 : parseInt(digits, 10);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg, icon = '✅') {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMsg').textContent = msg;
+      document.getElementById('toastIcon').textContent = icon;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2800);
+    }
+
+    function onModalInput(el) {
+      const val = parseFormattedNumber(el.value);
+      appState.modal = val;
+      el.value = val > 0 ? formatRupiahNumber(val) : '';
+      saveState();
+    }
+
+    // ==========================================
+    // RENDER TALLY MARKS (TURUS LIDI KELIPATAN 5)
+    // ==========================================
+    function renderTallyMarksHTML(count) {
+      if (!count || count <= 0) {
+        return `<span class="text-gray-300 text-xs italic select-none no-print">Klik untuk tambah turus (+1)...</span>`;
+      }
+
+      const fullGroups = Math.floor(count / 5);
+      const remainder = count % 5;
+      let html = '';
+
+      const displayGroups = Math.min(fullGroups, 40);
+      for (let g = 0; g < displayGroups; g++) {
+        html += `
+          <span class="tally-group" title="5 cup">
+            <span class="tally-stick"></span>
+            <span class="tally-stick"></span>
+            <span class="tally-stick"></span>
+            <span class="tally-stick"></span>
+            <span class="tally-slash"></span>
+          </span>
+        `;
+      }
+
+      if (fullGroups > 40) {
+        html += `<span class="text-xs font-bold text-gray-700 mr-2">[+${(fullGroups - 40) * 5}]</span>`;
+      }
+
+      if (remainder > 0) {
+        html += `<span class="tally-group" title="${remainder} cup">`;
+        for (let r = 0; r < remainder; r++) {
+          html += `<span class="tally-stick"></span>`;
+        }
+        html += `</span>`;
+      }
+
+      return html;
+    }
+
+    // ==========================================
+    // RENDER TABEL PENJUALAN UTAMA
+    // ==========================================
+    function renderProductTable() {
+      const tbody = document.getElementById('productTableBody');
+      tbody.innerHTML = '';
+
+      appState.products.forEach((prod) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-amber-50/40 transition-colors';
+
+        if (prod.isCustomerRow) {
+          const subtotal = (Number(prod.qty) || 0) * (Number(prod.price) || 0);
+          tr.innerHTML = `
+            <td class="cell-header-bg font-bold text-right px-2 py-1 text-xs sm:text-[13px]">
+              Customer :
+            </td>
+            <td class="px-2 py-1 bg-white">
+              <div class="flex items-center justify-between gap-2">
+                <input type="text" value="${escapeHtml(prod.customerNote || '')}"
+                  placeholder="Catatan customer / pesanan khusus..."
+                  class="w-full text-xs font-medium text-gray-800 focus:outline-none focus:bg-amber-50 px-1 py-0.5 rounded"
+                  oninput="updateCustomerNote(this.value)">
+                <div class="no-print flex items-center gap-1 shrink-0">
+                  <button onclick="changeProductQty('${prod.id}', -1)" class="w-6 h-6 rounded bg-gray-200 hover:bg-rose-500 hover:text-white text-gray-800 font-bold text-xs flex items-center justify-center" title="Kurangi turus customer">-1</button>
+                  <button onclick="changeProductQty('${prod.id}', 1)" class="w-6 h-6 rounded bg-gray-800 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center" title="Tambah turus customer">+1</button>
+                </div>
+              </div>
+              <div id="tallyBox_${prod.id}" class="${prod.qty > 0 ? 'mt-1' : ''}">${prod.qty > 0 ? renderTallyMarksHTML(prod.qty) : ''}</div>
+            </td>
+            <td class="p-0.5 bg-white">
+              <input type="text" inputmode="numeric" data-qty-input="${prod.id}" value="${prod.qty > 0 ? formatRupiahNumber(prod.qty) : ''}" placeholder=""
+                class="w-full text-center font-extrabold text-gray-900 py-1 focus:outline-none focus:bg-amber-50 rounded"
+                oninput="setProductQtyDirect('${prod.id}', this)"
+                onblur="formatProductQtyOnBlur('${prod.id}', this)"
+                title="Ketik total langsung atau gunakan tombol +1 / -1">
+            </td>
+            <td class="text-right px-2 py-1 bg-white">
+              <input type="text" inputmode="numeric" value="${prod.price > 0 ? formatRupiahNumber(prod.price) : ''}" placeholder=""
+                class="w-full text-right font-semibold text-gray-800 focus:outline-none focus:bg-amber-50 rounded"
+                oninput="updateProductPriceFormatted('${prod.id}', this)">
+            </td>
+            <td id="prodSubtotal_${prod.id}" class="text-right font-bold px-2 py-1 bg-white">
+              ${subtotal > 0 ? formatRupiahNumber(subtotal) : ''}
+            </td>
+          `;
+        } else {
+          const subtotal = (Number(prod.qty) || 0) * (Number(prod.price) || 0);
+          tr.innerHTML = `
+            <td class="cell-header-bg font-extrabold px-2 py-1 text-[11px] sm:text-xs tracking-tight select-none">
+              ${escapeHtml(prod.name)}
+            </td>
+            <td class="px-2 py-1 bg-white cursor-pointer select-none" onclick="changeProductQty('${prod.id}', 1)">
+              <div class="flex items-center justify-between gap-2 min-h-[22px]">
+                <div id="tallyBox_${prod.id}" class="flex flex-wrap items-center py-0.5">
+                  ${renderTallyMarksHTML(prod.qty)}
+                </div>
+                <div class="no-print flex items-center gap-1 shrink-0" onclick="event.stopPropagation()">
+                  <button onclick="changeProductQty('${prod.id}', -1)"
+                    class="w-7 h-7 sm:w-6 sm:h-6 rounded bg-gray-200 hover:bg-rose-500 hover:text-white active:scale-90 text-gray-800 font-extrabold text-xs flex items-center justify-center transition"
+                    title="Kurangi 1">
+                    -1
+                  </button>
+                  <button onclick="changeProductQty('${prod.id}', 1)"
+                    class="w-7 h-7 sm:w-6 sm:h-6 rounded bg-gray-800 hover:bg-emerald-600 active:scale-90 text-white font-extrabold text-xs flex items-center justify-center transition"
+                    title="Tambah 1">
+                    +1
+                  </button>
+                </div>
+              </div>
+            </td>
+            <td class="p-0.5 bg-white">
+              <input type="text" inputmode="numeric" data-qty-input="${prod.id}" value="${prod.qty > 0 ? formatRupiahNumber(prod.qty) : ''}" placeholder=""
+                class="w-full text-center font-extrabold text-gray-900 py-1 focus:outline-none focus:bg-amber-50 rounded"
+                oninput="setProductQtyDirect('${prod.id}', this)"
+                onblur="formatProductQtyOnBlur('${prod.id}', this)"
+                title="Ketik angka TOTAL secara langsung atau klik area turus">
+            </td>
+            <td class="text-right font-bold px-2 py-1 bg-white">
+              <input type="text" inputmode="numeric" value="${formatRupiahNumber(prod.price)}"
+                class="w-full text-right font-bold text-gray-900 focus:outline-none focus:bg-amber-50 rounded"
+                oninput="updateProductPriceFormatted('${prod.id}', this)"
+                title="Klik untuk ubah harga satuan">
+            </td>
+            <td id="prodSubtotal_${prod.id}" class="text-right font-extrabold px-2 py-1 bg-white">
+              ${subtotal > 0 ? formatRupiahNumber(subtotal) : ''}
+            </td>
+          `;
+        }
+
+        tbody.appendChild(tr);
+
+        if (prod.separatorAfter) {
+          const sepTr = document.createElement('tr');
+          sepTr.className = 'separator-row';
+          sepTr.innerHTML = `<td></td><td></td><td></td><td></td><td></td>`;
+          tbody.appendChild(sepTr);
+        }
+      });
+
+      // Tambah 2 baris kosong ekstra di bawah Customer seperti pada formulir kertas asli
+      for (let i = 0; i < 2; i++) {
+        const extraTr = document.createElement('tr');
+        extraTr.innerHTML = `
+          <td class="cell-header-bg h-[16px]"></td>
+          <td class="bg-white h-[16px]"></td>
+          <td class="bg-white h-[16px]"></td>
+          <td class="bg-white h-[16px]"></td>
+          <td class="bg-white h-[16px]"></td>
+        `;
+        tbody.appendChild(extraTr);
+      }
+    }
+
+    // ==========================================
+    // INTERAKSI PRODUK & TURUS
+    // ==========================================
+    function changeProductQty(productId, delta) {
+      const prod = appState.products.find(p => p.id === productId);
+      if (!prod) return;
+      prod.qty = Math.max(0, (Number(prod.qty) || 0) + delta);
+      const tallyEl = document.getElementById(`tallyBox_${productId}`);
+      if (tallyEl) {
+        if (prod.isCustomerRow) {
+          tallyEl.className = prod.qty > 0 ? 'mt-1' : '';
+          tallyEl.innerHTML = prod.qty > 0 ? renderTallyMarksHTML(prod.qty) : '';
+        } else {
+          tallyEl.innerHTML = renderTallyMarksHTML(prod.qty);
+        }
+      }
+      const qtyInput = document.querySelector(`input[data-qty-input="${productId}"]`);
+      if (qtyInput) {
+        qtyInput.value = prod.qty > 0 ? formatRupiahNumber(prod.qty) : '';
+      }
+      const subEl = document.getElementById(`prodSubtotal_${productId}`);
+      if (subEl) {
+        const sub = (Number(prod.qty) || 0) * (Number(prod.price) || 0);
+        subEl.textContent = sub > 0 ? formatRupiahNumber(sub) : '';
+      }
+      recalculateAll();
+    }
+
+    // Memperbarui nilai secara langsung tanpa re-render penuh saat mengetik agar urutan digit (misal 98) tetap utuh
+    function setProductQtyDirect(productId, inputEl) {
+      const prod = appState.products.find(p => p.id === productId);
+      if (!prod) return;
+      const rawDigits = String(inputEl.value || '').replace(/\D/g, '');
+      const cleanQty = rawDigits === '' ? 0 : parseInt(rawDigits, 10);
+      prod.qty = Math.max(0, cleanQty);
+
+      if (String(inputEl.value) !== rawDigits) {
+        inputEl.value = rawDigits;
+      }
+
+      const tallyEl = document.getElementById(`tallyBox_${productId}`);
+      if (tallyEl) {
+        if (prod.isCustomerRow) {
+          tallyEl.className = prod.qty > 0 ? 'mt-1' : '';
+          tallyEl.innerHTML = prod.qty > 0 ? renderTallyMarksHTML(prod.qty) : '';
+        } else {
+          tallyEl.innerHTML = renderTallyMarksHTML(prod.qty);
+        }
+      }
+
+      const subEl = document.getElementById(`prodSubtotal_${productId}`);
+      if (subEl) {
+        const sub = prod.qty * (Number(prod.price) || 0);
+        subEl.textContent = sub > 0 ? formatRupiahNumber(sub) : '';
+      }
+
+      recalculateAll();
+    }
+
+    function formatProductQtyOnBlur(productId, inputEl) {
+      const prod = appState.products.find(p => p.id === productId);
+      if (!prod) return;
+      const qtyVal = Math.max(0, parseFormattedNumber(inputEl.value));
+      prod.qty = qtyVal;
+      inputEl.value = qtyVal > 0 ? formatRupiahNumber(qtyVal) : '';
+      recalculateAll();
+    }
+
+    function updateProductPriceFormatted(productId, inputEl) {
+      const prod = appState.products.find(p => p.id === productId);
+      if (!prod) return;
+      const numericVal = parseFormattedNumber(inputEl.value);
+      prod.price = numericVal;
+      inputEl.value = numericVal > 0 ? formatRupiahNumber(numericVal) : '';
+      const subEl = document.getElementById(`prodSubtotal_${productId}`);
+      const sub = (Number(prod.qty) || 0) * numericVal;
+      if (subEl) subEl.textContent = sub > 0 ? formatRupiahNumber(sub) : '';
+      recalculateAll();
+    }
+
+    function updateCustomerNote(val) {
+      const prod = appState.products.find(p => p.isCustomerRow);
+      if (prod) {
+        prod.customerNote = val;
+        saveState();
+      }
+    }
+
+    // ==========================================
+    // PANEL KANAN: RINCIAN TRANSAKSI QRIS
+    // ==========================================
+    function renderQrisInputs() {
+      const container = document.getElementById('qrisInputsContainer');
+      container.innerHTML = '';
+
+      appState.qrisEntries.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-1';
+        row.innerHTML = `
+          <span class="text-[11px] font-bold text-gray-500 w-4 select-none">${index + 1}.</span>
+          <div class="flex items-center flex-1 border border-gray-400 bg-white rounded px-1.5 py-0.5 focus-within:border-gray-900 focus-within:bg-amber-50">
+            <span class="text-[10px] text-gray-400 mr-1 select-none">Rp</span>
+            <input type="text" inputmode="numeric"
+              value="${item.amount > 0 ? formatRupiahNumber(item.amount) : ''}"
+              placeholder="0"
+              class="w-full text-right text-xs font-bold text-gray-900 bg-transparent focus:outline-none"
+              oninput="updateQrisRow('${item.id}', this)">
+          </div>
+          ${appState.qrisEntries.length > 1 ? `
+            <button onclick="removeQrisRow('${item.id}')" class="no-print text-rose-600 hover:text-rose-800 font-bold text-xs px-1" title="Hapus baris QRIS">×</button>
+          ` : ''}
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function addQrisRow() {
+      appState.qrisEntries.push({
+        id: 'q_' + Date.now(),
+        amount: 0
+      });
+      renderQrisInputs();
+      saveState();
+    }
+
+    function removeQrisRow(id) {
+      appState.qrisEntries = appState.qrisEntries.filter(q => q.id !== id);
+      appState.manualQrisOverride = null;
+      renderQrisInputs();
+      recalculateAll();
+    }
+
+    function updateQrisRow(id, inputEl) {
+      const item = appState.qrisEntries.find(q => q.id === id);
+      if (!item) return;
+      const numericVal = parseFormattedNumber(inputEl.value);
+      item.amount = numericVal;
+      inputEl.value = numericVal > 0 ? formatRupiahNumber(numericVal) : '';
+      appState.manualQrisOverride = null;
+      recalculateAll();
+    }
+
+    function onManualQrisSummaryChange(inputEl) {
+      const numericVal = parseFormattedNumber(inputEl.value);
+      inputEl.value = numericVal > 0 ? formatRupiahNumber(numericVal) : '';
+      appState.manualQrisOverride = inputEl.value === '' ? null : numericVal;
+      recalculateAll(true);
+    }
+
+    function onManualCashChange(inputEl) {
+      const numericVal = parseFormattedNumber(inputEl.value);
+      inputEl.value = numericVal > 0 ? formatRupiahNumber(numericVal) : '';
+      appState.manualCashOverride = inputEl.value === '' ? null : numericVal;
+      recalculateAll(false, true);
+    }
+
+    // ==========================================
+    // PENGELUARAN BAHAN-BAHAN (4 KOLOM HORIZONTAL)
+    // ==========================================
+    function renderExpensesTable() {
+      const tbody = document.getElementById('expensesTableBody');
+      tbody.innerHTML = '';
+
+      appState.expenses.forEach((exp, idx) => {
+        const subtotal = getExpenseRowTotal(exp);
+        const formattedPrice = exp.price !== '' && exp.price !== null && Number(exp.price) > 0
+          ? formatRupiahNumber(exp.price)
+          : '';
+
+        const tr = document.createElement('tr');
+        tr.className = 'expense-row';
+        tr.innerHTML = `
+          <td class="cell-header-bg font-bold border-b-[1.5px] border-r-[1.5px] border-gray-800 py-0.5 px-1.5 w-[36%] text-[11px] sm:text-xs">
+            <div class="flex items-center justify-between gap-1">
+              <input type="text" value="${escapeHtml(exp.name)}"
+                class="w-full bg-transparent font-bold text-gray-900 focus:outline-none focus:bg-white rounded px-0.5"
+                oninput="updateExpenseName('${exp.id}', this.value)">
+              ${idx >= 24 ? `<button onclick="removeExpenseRow('${exp.id}')" class="no-print text-rose-600 font-bold text-xs px-1" title="Hapus baris">×</button>` : ''}
+            </div>
+          </td>
+          <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-0.5 px-1 bg-white w-[16%]">
+            <input type="number" step="any" min="0" value="${exp.qty !== undefined && exp.qty !== null ? exp.qty : ''}" placeholder=""
+              class="w-full text-center font-semibold text-gray-900 text-[11px] sm:text-xs focus:outline-none focus:bg-amber-50 rounded"
+              oninput="updateExpenseQty('${exp.id}', this.value)">
+          </td>
+          <td class="border-b-[1.5px] border-r-[1.5px] border-gray-800 py-0.5 px-1 bg-white w-[24%]">
+            <input type="text" inputmode="numeric" value="${formattedPrice}" placeholder=""
+              class="w-full text-right font-semibold text-gray-900 text-[11px] sm:text-xs focus:outline-none focus:bg-amber-50 rounded"
+              oninput="updateExpensePrice('${exp.id}', this)">
+          </td>
+          <td id="expSubtotal_${exp.id}" class="border-b-[1.5px] border-gray-800 py-0.5 px-1.5 bg-gray-50/70 text-right font-bold text-gray-900 text-[11px] sm:text-xs w-[24%]">
+            ${subtotal > 0 ? formatRupiahNumber(subtotal) : ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function addExpenseRow() {
+      appState.expenses.push({
+        id: 'e_' + Date.now(),
+        name: 'Bahan tambahan',
+        qty: '',
+        price: ''
+      });
+      renderExpensesTable();
+      saveState();
+    }
+
+    function removeExpenseRow(id) {
+      appState.expenses = appState.expenses.filter(e => e.id !== id);
+      renderExpensesTable();
+      recalculateAll();
+    }
+
+    function updateExpenseName(id, val) {
+      const item = appState.expenses.find(e => e.id === id);
+      if (item) {
+        item.name = val;
+        saveState();
+      }
+    }
+
+    function updateExpenseQty(id, val) {
+      const item = appState.expenses.find(e => e.id === id);
+      if (item) {
+        item.qty = val === '' ? '' : Math.max(0, parseFloat(val) || 0);
+        const subEl = document.getElementById(`expSubtotal_${id}`);
+        const sub = getExpenseRowTotal(item);
+        if (subEl) subEl.textContent = sub > 0 ? formatRupiahNumber(sub) : '';
+        recalculateAll();
+      }
+    }
+
+    function updateExpensePrice(id, inputEl) {
+      const item = appState.expenses.find(e => e.id === id);
+      if (!item) return;
+      const numericVal = parseFormattedNumber(inputEl.value);
+      if (numericVal === 0 && inputEl.value.replace(/\D/g, '') === '') {
+        item.price = '';
+        inputEl.value = '';
+      } else {
+        item.price = numericVal;
+        inputEl.value = formatRupiahNumber(numericVal);
+      }
+      const subEl = document.getElementById(`expSubtotal_${id}`);
+      const sub = getExpenseRowTotal(item);
+      if (subEl) subEl.textContent = sub > 0 ? formatRupiahNumber(sub) : '';
+      recalculateAll();
+    }
+
+    function getExpenseRowTotal(exp) {
+      const qty = parseFloat(exp.qty);
+      const price = Number(exp.price) || 0;
+      if (!isNaN(qty) && qty > 0 && price > 0) {
+        return Math.round(qty * price);
+      }
+      return 0;
+    }
+
+    // ==========================================
+    // PERHITUNGAN OTOMATIS REAL-TIME
+    // ==========================================
+    function recalculateAll(skipQrisOverwrite = false, skipCashOverwrite = false) {
+      // 1. Hitung Total Cup & Omzet dari Tabel Penjualan Utama
+      let totalAllCups = 0;
+      let totalPosReg = 0;
+      let totalPosJumbo = 0;
+      let totalOmzet = 0;
+
+      appState.products.forEach(p => {
+        const q = Number(p.qty) || 0;
+        const pr = Number(p.price) || 0;
+        totalAllCups += q;
+        totalOmzet += (q * pr);
+        if (p.cupType === 'REG') totalPosReg += q;
+        if (p.cupType === 'JUMBO') totalPosJumbo += q;
+      });
+
+      document.getElementById('grandTotalCup').textContent = totalAllCups;
+      document.getElementById('grandTotalOmzet').textContent = formatRupiahNumber(totalOmzet);
+
+      // Badge referensi POS di Rekap Cup
+      document.getElementById('syncRegBadge').textContent = `POS Reg: ${totalPosReg} cup`;
+      document.getElementById('syncJumboBadge').textContent = `POS Jumbo: ${totalPosJumbo} cup`;
+
+      // 2. Hitung Rekap Cup Reguler & Jumbo
+      const regAwal = Number(document.getElementById('cupRegAwal').value) || 0;
+      const regTambah = Number(document.getElementById('cupRegTambah').value) || 0;
+      const regAkhir = Number(document.getElementById('cupRegAkhir').value) || 0;
+      const regReject = Number(document.getElementById('cupRegReject').value) || 0;
+
+      const hasRegInput = document.getElementById('cupRegAwal').value !== '' ||
+                          document.getElementById('cupRegTambah').value !== '' ||
+                          document.getElementById('cupRegAkhir').value !== '' ||
+                          document.getElementById('cupRegReject').value !== '';
+
+      const regTerjual = hasRegInput ? ((regAwal + regTambah) - regAkhir - regReject) : 0;
+      document.getElementById('cupRegTerjual').textContent = regTerjual;
+
+      const jumboAwal = Number(document.getElementById('cupJumboAwal').value) || 0;
+      const jumboTambah = Number(document.getElementById('cupJumboTambah').value) || 0;
+      const jumboAkhir = Number(document.getElementById('cupJumboAkhir').value) || 0;
+      const jumboReject = Number(document.getElementById('cupJumboReject').value) || 0;
+
+      const hasJumboInput = document.getElementById('cupJumboAwal').value !== '' ||
+                            document.getElementById('cupJumboTambah').value !== '' ||
+                            document.getElementById('cupJumboAkhir').value !== '' ||
+                            document.getElementById('cupJumboReject').value !== '';
+
+      const jumboTerjual = hasJumboInput ? ((jumboAwal + jumboTambah) - jumboAkhir - jumboReject) : 0;
+      document.getElementById('cupJumboTerjual').textContent = jumboTerjual;
+
+      // Indikator kecocokan / selisih cup
+      const alertBox = document.getElementById('cupAlertContainer');
+      alertBox.innerHTML = '';
+      if (hasRegInput) {
+        if (regTerjual === totalPosReg) {
+          alertBox.innerHTML += `
+            <div class="text-[11px] px-2 py-1 rounded bg-emerald-50 border border-emerald-300 text-emerald-900">
+              ✅ <b>Cup Reguler Cocok:</b> Rekap stok (${regTerjual}) sama dengan Tabel POS (${totalPosReg}).
+            </div>
+          `;
+        } else {
+          const diff = regTerjual - totalPosReg;
+          alertBox.innerHTML += `
+            <div class="text-[11px] px-2 py-1 rounded bg-amber-50 border border-amber-300 text-amber-900">
+              ⚠️ <b>Selisih Cup Reguler:</b> Rekap stok (${regTerjual}) vs Tabel POS (${totalPosReg}) → Selisih <b>${diff > 0 ? '+' + diff : diff}</b> cup.
+            </div>
+          `;
+        }
+      }
+      if (hasJumboInput) {
+        if (jumboTerjual === totalPosJumbo) {
+          alertBox.innerHTML += `
+            <div class="text-[11px] px-2 py-1 rounded bg-emerald-50 border border-emerald-300 text-emerald-900">
+              ✅ <b>Cup Jumbo Cocok:</b> Rekap stok (${jumboTerjual}) sama dengan Tabel POS (${totalPosJumbo}).
+            </div>
+          `;
+        } else {
+          const diff = jumboTerjual - totalPosJumbo;
+          alertBox.innerHTML += `
+            <div class="text-[11px] px-2 py-1 rounded bg-amber-50 border border-amber-300 text-amber-900">
+              ⚠️ <b>Selisih Cup Jumbo:</b> Rekap stok (${jumboTerjual}) vs Tabel POS (${totalPosJumbo}) → Selisih <b>${diff > 0 ? '+' + diff : diff}</b> cup.
+            </div>
+          `;
+        }
+      }
+
+      // 3. Hitung QRIS
+      const qrisListSum = appState.qrisEntries.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
+      document.getElementById('qrisSideTotalBadge').textContent = `Rp ${formatRupiahNumber(qrisListSum)}`;
+
+      const totalQris = appState.manualQrisOverride !== null ? appState.manualQrisOverride : qrisListSum;
+      if (!skipQrisOverwrite) {
+        document.getElementById('summaryQrisInput').value = totalQris > 0 ? formatRupiahNumber(totalQris) : '';
+      }
+
+      // 4. Hitung Pengeluaran Bahan-Bahan
+      const totalPengeluaran = appState.expenses.reduce((acc, item) => acc + getExpenseRowTotal(item), 0);
+      document.getElementById('expensesTableTotal').textContent = formatRupiahNumber(totalPengeluaran);
+
+      // 5. Hitung Ringkasan Keuangan (Total, Cash, Qris, Pengeluaran, Profit)
+      const autoCash = totalOmzet - totalQris;
+      const finalCash = appState.manualCashOverride !== null ? appState.manualCashOverride : autoCash;
+      if (!skipCashOverwrite) {
+        document.getElementById('summaryCashInput').value = finalCash !== 0 ? formatRupiahNumber(finalCash) : '0';
+      }
+
+      const totalProfit = totalOmzet - totalPengeluaran;
+
+      document.getElementById('summaryTotalOmzet').textContent = formatRupiahNumber(totalOmzet);
+      document.getElementById('summaryPengeluaran').textContent = formatRupiahNumber(totalPengeluaran);
+      document.getElementById('summaryProfit').textContent = formatRupiahNumber(totalProfit);
+
+      saveState();
+    }
+
+    function autoFillCupAkhirFromPos() {
+      let totalPosReg = 0;
+      let totalPosJumbo = 0;
+      appState.products.forEach(p => {
+        if (p.cupType === 'REG') totalPosReg += (Number(p.qty) || 0);
+        if (p.cupType === 'JUMBO') totalPosJumbo += (Number(p.qty) || 0);
+      });
+
+      const regAwal = Number(document.getElementById('cupRegAwal').value) || 0;
+      const regTambah = Number(document.getElementById('cupRegTambah').value) || 0;
+      const regReject = Number(document.getElementById('cupRegReject').value) || 0;
+      if (regAwal + regTambah > 0) {
+        document.getElementById('cupRegAkhir').value = Math.max(0, (regAwal + regTambah) - totalPosReg - regReject);
+      }
+
+      const jumboAwal = Number(document.getElementById('cupJumboAwal').value) || 0;
+      const jumboTambah = Number(document.getElementById('cupJumboTambah').value) || 0;
+      const jumboReject = Number(document.getElementById('cupJumboReject').value) || 0;
+      if (jumboAwal + jumboTambah > 0) {
+        document.getElementById('cupJumboAkhir').value = Math.max(0, (jumboAwal + jumboTambah) - totalPosJumbo - jumboReject);
+      }
+
+      recalculateAll();
+      showToast('Stok AKHIR disesuaikan otomatis dengan total penjualan POS');
+    }
+
+    // ==========================================
+    // PENYIMPANAN LOCALSTORAGE
+    // ==========================================
+    function saveState() {
+      appState.tanggal = document.getElementById('inputTanggal').value;
+      appState.cabang = document.getElementById('inputCabang').value;
+      appState.karyawan = document.getElementById('inputKaryawan').value;
+      appState.modal = parseFormattedNumber(document.getElementById('inputModal').value);
+
+      appState.cupReg = {
+        awal: document.getElementById('cupRegAwal').value,
+        tambah: document.getElementById('cupRegTambah').value,
+        akhir: document.getElementById('cupRegAkhir').value,
+        reject: document.getElementById('cupRegReject').value
+      };
+
+      appState.cupJumbo = {
+        awal: document.getElementById('cupJumboAwal').value,
+        tambah: document.getElementById('cupJumboTambah').value,
+        akhir: document.getElementById('cupJumboAkhir').value,
+        reject: document.getElementById('cupJumboReject').value
+      };
+
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        console.error('Gagal menyimpan ke localStorage', e);
+      }
+    }
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          appState = { ...appState, ...parsed };
+
+          const existingMap = {};
+          (appState.expenses || []).forEach(e => {
+            existingMap[e.name.toLowerCase()] = {
+              id: e.id,
+              name: e.name,
+              qty: e.qty !== undefined ? e.qty : '',
+              price: e.price !== undefined ? e.price : ''
+            };
+          });
+          const mergedExpenses = DEFAULT_EXPENSES.map(def => {
+            const found = existingMap[def.name.toLowerCase()];
+            return found ? { ...def, ...found } : { ...def };
+          });
+          (appState.expenses || []).forEach(e => {
+            const isDefault = DEFAULT_EXPENSES.some(d => d.name.toLowerCase() === e.name.toLowerCase());
+            if (!isDefault) {
+              mergedExpenses.push({
+                id: e.id || ('e_' + Date.now()),
+                name: e.name,
+                qty: e.qty !== undefined ? e.qty : '',
+                price: e.price !== undefined ? e.price : ''
+              });
+            }
+          });
+          appState.expenses = mergedExpenses;
+        }
+      } catch (e) {
+        console.error('Gagal memuat state', e);
+      }
+
+      document.getElementById('inputTanggal').value = appState.tanggal || getTodayFormatted();
+      document.getElementById('inputCabang').value = appState.cabang || '';
+      document.getElementById('inputKaryawan').value = appState.karyawan || '';
+      document.getElementById('inputModal').value = appState.modal > 0 ? formatRupiahNumber(appState.modal) : '';
+
+      document.getElementById('cupRegAwal').value = appState.cupReg?.awal ?? '';
+      document.getElementById('cupRegTambah').value = appState.cupReg?.tambah ?? '';
+      document.getElementById('cupRegAkhir').value = appState.cupReg?.akhir ?? '';
+      document.getElementById('cupRegReject').value = appState.cupReg?.reject ?? '';
+
+      document.getElementById('cupJumboAwal').value = appState.cupJumbo?.awal ?? '';
+      document.getElementById('cupJumboTambah').value = appState.cupJumbo?.tambah ?? '';
+      document.getElementById('cupJumboAkhir').value = appState.cupJumbo?.akhir ?? '';
+      document.getElementById('cupJumboReject').value = appState.cupJumbo?.reject ?? '';
+
+      renderProductTable();
+      renderQrisInputs();
+      renderExpensesTable();
+      recalculateAll();
+    }
+
+    // ==========================================
+    // RESET / HARI BARU
+    // ==========================================
+    function openResetModal() {
+      const modal = document.getElementById('resetModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeResetModal() {
+      const modal = document.getElementById('resetModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function executeReset(carryOverStock) {
+      const prevRegAkhir = document.getElementById('cupRegAkhir').value;
+      const prevJumboAkhir = document.getElementById('cupJumboAkhir').value;
+
+      appState.products.forEach(p => {
+        p.qty = 0;
+        if (p.isCustomerRow) {
+          p.customerNote = '';
+          p.price = 0;
+        }
+      });
+
+      appState.qrisEntries = [
+        { id: 'q1', amount: 0 },
+        { id: 'q2', amount: 0 },
+        { id: 'q3', amount: 0 },
+        { id: 'q4', amount: 0 },
+        { id: 'q5', amount: 0 }
+      ];
+      appState.manualQrisOverride = null;
+      appState.manualCashOverride = null;
+      appState.expenses = JSON.parse(JSON.stringify(DEFAULT_EXPENSES));
+      appState.tanggal = getTodayFormatted();
+
+      document.getElementById('inputTanggal').value = appState.tanggal;
+      document.getElementById('summaryQrisInput').value = '';
+
+      if (carryOverStock) {
+        document.getElementById('cupRegAwal').value = prevRegAkhir || '';
+        document.getElementById('cupRegTambah').value = '';
+        document.getElementById('cupRegAkhir').value = '';
+        document.getElementById('cupRegReject').value = '';
+
+        document.getElementById('cupJumboAwal').value = prevJumboAkhir || '';
+        document.getElementById('cupJumboTambah').value = '';
+        document.getElementById('cupJumboAkhir').value = '';
+        document.getElementById('cupJumboReject').value = '';
+      } else {
+        appState.modal = 0;
+        document.getElementById('inputModal').value = '';
+        ['cupRegAwal', 'cupRegTambah', 'cupRegAkhir', 'cupRegReject',
+         'cupJumboAwal', 'cupJumboTambah', 'cupJumboAkhir', 'cupJumboReject'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+      }
+
+      renderProductTable();
+      renderQrisInputs();
+      renderExpensesTable();
+      recalculateAll();
+      closeResetModal();
+      showToast(carryOverStock ? 'Hari baru dimulai! Stok akhir dipindahkan ke awal.' : 'Formulir berhasil direset kosong total.');
+    }
+
+    // ==========================================
+    // SALIN LAPORAN WHATSAPP
+    // ==========================================
+    function copyWhatsAppReport() {
+      const tanggal = document.getElementById('inputTanggal').value || '-';
+      const cabang = document.getElementById('inputCabang').value || '-';
+      const karyawan = document.getElementById('inputKaryawan').value || '-';
+      const modal = appState.modal || 0;
+
+      let lines = [];
+      lines.push(`*LAPORAN PENJUALAN HARIAN*`);
+      lines.push(`📅 Hari/Tgl : ${tanggal}`);
+      lines.push(`🏪 Cabang   : ${cabang}`);
+      lines.push(`👤 Karyawan : ${karyawan}`);
+      lines.push(`💵 Modal    : Rp ${formatRupiahNumber(modal)}`);
+      lines.push(`--------------------------------`);
+      lines.push(`*RINCIAN PENJUALAN :*`);
+
+      let totalCup = 0;
+      let totalOmzet = 0;
+      appState.products.forEach(p => {
+        if (p.qty > 0) {
+          const sub = p.qty * p.price;
+          totalCup += p.qty;
+          totalOmzet += sub;
+          const label = p.isCustomerRow ? `Customer (${p.customerNote || 'Umum'})` : p.name;
+          lines.push(`• ${label} : ${p.qty} x ${formatRupiahNumber(p.price)} = Rp ${formatRupiahNumber(sub)}`);
+        }
+      });
+
+      if (totalCup === 0) {
+        lines.push(`_(Belum ada transaksi tercatat)_`);
+      }
+
+      lines.push(`--------------------------------`);
+      lines.push(`🥤 *TOTAL CUP TERJUAL : ${totalCup} Cup*`);
+      lines.push(`💰 *TOTAL PENJUALAN : Rp ${formatRupiahNumber(totalOmzet)}*`);
+      lines.push(`--------------------------------`);
+
+      const regTerjual = document.getElementById('cupRegTerjual').textContent;
+      const jumboTerjual = document.getElementById('cupJumboTerjual').textContent;
+      lines.push(`*REKAP STOK CUP :*`);
+      lines.push(`• Cup Reguler : Awal ${document.getElementById('cupRegAwal').value || 0} | +${document.getElementById('cupRegTambah').value || 0} | Akhir ${document.getElementById('cupRegAkhir').value || 0} | Reject ${document.getElementById('cupRegReject').value || 0} → *Terjual: ${regTerjual}*`);
+      lines.push(`• Cup Jumbo   : Awal ${document.getElementById('cupJumboAwal').value || 0} | +${document.getElementById('cupJumboTambah').value || 0} | Akhir ${document.getElementById('cupJumboAkhir').value || 0} | Reject ${document.getElementById('cupJumboReject').value || 0} → *Terjual: ${jumboTerjual}*`);
+      lines.push(`--------------------------------`);
+
+      lines.push(`*PENGELUARAN BAHAN :*`);
+      let hasExp = false;
+      appState.expenses.forEach(e => {
+        const rowTotal = getExpenseRowTotal(e);
+        if (rowTotal > 0) {
+          hasExp = true;
+          lines.push(`• ${e.name} : ${e.qty} x Rp ${formatRupiahNumber(e.price)} = Rp ${formatRupiahNumber(rowTotal)}`);
+        }
+      });
+      if (!hasExp) lines.push(`• Rp 0`);
+
+      const cashVal = parseFormattedNumber(document.getElementById('summaryCashInput').value);
+      const qrisVal = parseFormattedNumber(document.getElementById('summaryQrisInput').value);
+
+      lines.push(`--------------------------------`);
+      lines.push(`*RINGKASAN KEUANGAN :*`);
+      lines.push(`• Total Penjualan : Rp ${document.getElementById('summaryTotalOmzet').textContent}`);
+      lines.push(`• Cash            : Rp ${formatRupiahNumber(cashVal)}`);
+      lines.push(`• QRIS            : Rp ${formatRupiahNumber(qrisVal)}`);
+      lines.push(`• Pengeluaran     : Rp ${document.getElementById('summaryPengeluaran').textContent}`);
+      lines.push(`✅ *PROFIT BERSIH  : Rp ${document.getElementById('summaryProfit').textContent}*`);
+
+      const textToCopy = lines.join('\n');
+
+      const tempArea = document.createElement('textarea');
+      tempArea.value = textToCopy;
+      tempArea.style.position = 'fixed';
+      tempArea.style.left = '-9999px';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Laporan berhasil disalin! Siap ditempel ke WhatsApp.', '📋');
+      } catch (err) {
+        showToast('Gagal menyalin teks laporan.', '❌');
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    // ==========================================
+    // BAGIKAN & UNDUH FILE EXCEL (.XLS)
+    // ==========================================
+    function buildExcelFilename() {
+      const tglRaw = (document.getElementById('inputTanggal').value || 'Harian')
+        .replace(/[^a-zA-Z0-9_-]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+      const cabRaw = (document.getElementById('inputCabang').value || '')
+        .trim()
+        .replace(/[^a-zA-Z0-9_-]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+      return `Laporan_Penjualan_${cabRaw ? cabRaw + '_' : ''}${tglRaw || 'Harian'}.xls`;
+    }
+
+    function triggerFileDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+
+    function formatTallyTextForExcel(count) {
+      const n = Number(count) || 0;
+      if (n <= 0) return '';
+      const groups5 = Math.floor(n / 5);
+      const rem = n % 5;
+      const parts = [];
+      for (let i = 0; i < groups5; i++) parts.push('||||/');
+      if (rem > 0) parts.push('|'.repeat(rem));
+      return `${parts.join(' ')} (${n})`;
+    }
+
+    function buildExcelHtmlContent() {
+      const tanggal = document.getElementById('inputTanggal').value || '-';
+      const cabang = document.getElementById('inputCabang').value || '-';
+      const karyawan = document.getElementById('inputKaryawan').value || '-';
+      const modal = appState.modal || 0;
+
+      let totalCup = 0;
+      let totalOmzet = 0;
+      const productRowsHtml = appState.products.map((p) => {
+        const q = Number(p.qty) || 0;
+        const pr = Number(p.price) || 0;
+        const sub = q * pr;
+        totalCup += q;
+        totalOmzet += sub;
+        const namaLabel = p.isCustomerRow
+          ? `Customer : ${p.customerNote || ''}`
+          : p.name;
+        const catatanText = p.isCustomerRow
+          ? `${p.customerNote ? p.customerNote + ' ' : ''}${formatTallyTextForExcel(q)}`
+          : formatTallyTextForExcel(q);
+
+        return `
+          <tr>
+            <td>${escapeHtml(namaLabel)}</td>
+            <td>${escapeHtml(catatanText)}</td>
+            <td style="text-align:center;">${q}</td>
+            <td style="text-align:right;">${pr}</td>
+            <td style="text-align:right;">${sub}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const regAwal = Number(document.getElementById('cupRegAwal').value) || 0;
+      const regTambah = Number(document.getElementById('cupRegTambah').value) || 0;
+      const regAkhir = Number(document.getElementById('cupRegAkhir').value) || 0;
+      const regReject = Number(document.getElementById('cupRegReject').value) || 0;
+      const regTerjual = document.getElementById('cupRegTerjual').textContent || '0';
+
+      const jumboAwal = Number(document.getElementById('cupJumboAwal').value) || 0;
+      const jumboTambah = Number(document.getElementById('cupJumboTambah').value) || 0;
+      const jumboAkhir = Number(document.getElementById('cupJumboAkhir').value) || 0;
+      const jumboReject = Number(document.getElementById('cupJumboReject').value) || 0;
+      const jumboTerjual = document.getElementById('cupJumboTerjual').textContent || '0';
+
+      const qrisRowsHtml = appState.qrisEntries
+        .map((qItem, idx) => {
+          const amt = Number(qItem.amount) || 0;
+          if (amt <= 0 && idx >= 3) return '';
+          return `
+            <tr>
+              <td style="font-weight:bold;">QRIS #${idx + 1}</td>
+              <td style="text-align:right;">${amt}</td>
+            </tr>
+          `;
+        })
+        .join('');
+
+      let totalPengeluaran = 0;
+      const expenseRowsHtml = appState.expenses.map((exp) => {
+        const qtyNum = exp.qty === '' || exp.qty === null || exp.qty === undefined ? 0 : (parseFloat(exp.qty) || 0);
+        const priceNum = Number(exp.price) || 0;
+        const subNum = getExpenseRowTotal(exp);
+        totalPengeluaran += subNum;
+        return `
+          <tr>
+            <td>${escapeHtml(exp.name || '')}</td>
+            <td style="text-align:center;">${qtyNum}</td>
+            <td style="text-align:right;">${priceNum}</td>
+            <td style="text-align:right;">${subNum}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const cashVal = parseFormattedNumber(document.getElementById('summaryCashInput').value);
+      const qrisVal = parseFormattedNumber(document.getElementById('summaryQrisInput').value);
+      const profitVal = totalOmzet - totalPengeluaran;
+
+      return `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office"
+              xmlns:x="urn:schemas-microsoft-com:office:excel"
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            table { border-collapse: collapse; margin-bottom: 14px; font-family: Arial, sans-serif; font-size: 11pt; }
+            th, td { border: 1px solid #1f2937; padding: 5px 8px; }
+            th { background-color: #d1d5db; font-weight: bold; }
+            .title { font-size: 14pt; font-weight: bold; border: none; padding: 4px 0; }
+          </style>
+        </head>
+        <body>
+          <table>
+            <tr><td colspan="5" class="title">LAPORAN PENJUALAN &amp; STOK HARIAN</td></tr>
+            <tr><th style="text-align:left;">HARI/TANGGAL</th><td colspan="2">${escapeHtml(tanggal)}</td><th>MODAL</th><td style="text-align:right;">${modal}</td></tr>
+            <tr><th style="text-align:left;">CABANG</th><td colspan="4">${escapeHtml(cabang)}</td></tr>
+            <tr><th style="text-align:left;">NAMA KARYAWAN</th><td colspan="4">${escapeHtml(karyawan)}</td></tr>
+          </table>
+
+          <table>
+            <thead>
+              <tr>
+                <th>NAMA PRODUK</th>
+                <th>CATATAN PENJUALAN</th>
+                <th>TOTAL</th>
+                <th>HARGA</th>
+                <th>JUMLAH</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productRowsHtml}
+              <tr style="background-color:#f3f4f6;font-weight:bold;">
+                <td colspan="2" style="text-align:right;">TOTAL</td>
+                <td style="text-align:center;">${totalCup}</td>
+                <td></td>
+                <td style="text-align:right;">${totalOmzet}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table>
+            <thead>
+              <tr>
+                <th>REKAP CUP TERJUAL</th>
+                <th>AWAL</th>
+                <th>TAMBAH</th>
+                <th>AKHIR</th>
+                <th>REJECT</th>
+                <th>TERJUAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>CUP REGULER</b></td>
+                <td style="text-align:center;">${regAwal}</td>
+                <td style="text-align:center;">${regTambah}</td>
+                <td style="text-align:center;">${regAkhir}</td>
+                <td style="text-align:center;">${regReject}</td>
+                <td style="text-align:center;font-weight:bold;">${escapeHtml(regTerjual)}</td>
+              </tr>
+              <tr>
+                <td><b>CUP JUMBO</b></td>
+                <td style="text-align:center;">${jumboAwal}</td>
+                <td style="text-align:center;">${jumboTambah}</td>
+                <td style="text-align:center;">${jumboAkhir}</td>
+                <td style="text-align:center;">${jumboReject}</td>
+                <td style="text-align:center;font-weight:bold;">${escapeHtml(jumboTerjual)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table>
+            <thead>
+              <tr>
+                <th>PENGELUARAN BAHAN-BAHAN</th>
+                <th>JML BAHAN</th>
+                <th>HARGA BAHAN</th>
+                <th>JUMLAH</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${expenseRowsHtml}
+              <tr style="background-color:#f3f4f6;font-weight:bold;">
+                <td colspan="3" style="text-align:right;">TOTAL PENGELUARAN</td>
+                <td style="text-align:right;">${totalPengeluaran}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table>
+            <thead>
+              <tr>
+                <th colspan="2">RINCIAN QRIS</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${qrisRowsHtml || '<tr><td>QRIS</td><td style="text-align:right;">0</td></tr>'}
+              <tr style="font-weight:bold;">
+                <td>TOTAL QRIS</td>
+                <td style="text-align:right;">${qrisVal}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <table>
+            <thead>
+              <tr>
+                <th colspan="2">RINGKASAN KEUANGAN</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><b>TOTAL</b></td><td style="text-align:right;font-weight:bold;">${totalOmzet}</td></tr>
+              <tr><td><b>Cash</b></td><td style="text-align:right;">${cashVal}</td></tr>
+              <tr><td><b>Qris</b></td><td style="text-align:right;">${qrisVal}</td></tr>
+              <tr><td><b>Modal</b></td><td style="text-align:right;">${modal}</td></tr>
+              <tr><td><b>Pengeluaran</b></td><td style="text-align:right;">${totalPengeluaran}</td></tr>
+              <tr style="background-color:#ecfdf5;font-weight:bold;"><td><b>Profit</b></td><td style="text-align:right;">${profitVal}</td></tr>
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+    }
+
+    async function shareOrDownloadExcel() {
+      const btn = document.getElementById('btnShareExcel');
+      const labelEl = document.getElementById('shareExcelLabel');
+      const originalLabel = labelEl ? labelEl.textContent : 'Bagikan Excel';
+      const filename = buildExcelFilename();
+
+      if (btn) btn.disabled = true;
+      if (labelEl) labelEl.textContent = 'Memproses Excel...';
+
+      try {
+        const htmlContent = buildExcelHtmlContent();
+        const excelBlob = new Blob(['\ufeff', htmlContent], {
+          type: 'application/vnd.ms-excel;charset=utf-8;'
+        });
+        const excelFile = new File([excelBlob], filename, {
+          type: 'application/vnd.ms-excel'
+        });
+
+        triggerFileDownload(excelBlob, filename);
+
+        if (
+          typeof navigator.share === 'function' &&
+          typeof navigator.canShare === 'function' &&
+          navigator.canShare({ files: [excelFile] })
+        ) {
+          try {
+            await navigator.share({
+              title: 'Laporan Penjualan Harian (Excel)',
+              text: `Laporan Penjualan Harian - ${document.getElementById('inputTanggal').value || ''}`,
+              files: [excelFile]
+            });
+            showToast('File Excel berhasil dibagikan & diunduh!', '📊');
+          } catch (shareErr) {
+            showToast(`File Excel diunduh: ${filename}`, '📥');
+          }
+        } else {
+          showToast(`File Excel berhasil dibuat & diunduh: ${filename}`, '📥');
+        }
+      } catch (err) {
+        console.error('Ekspor Excel gagal:', err);
+        showToast('Gagal membuat file Excel.', '❌');
+      } finally {
+        if (btn) btn.disabled = false;
+        if (labelEl) labelEl.textContent = originalLabel;
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', loadState);
+  </script>
+</body>
+</html>
+```
